@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Simple Calculator";
+}
+<h2>@ViewData["Title"]</h2>
+<form method="post" asp-controller="Calculator" asp-action="Calculate">
+    @Html.AntiForgeryToken()
+    <input type="text" name="num1" required />
+    <select name="operation" required>
+        <option value="Add">+</option>
+        <option value="Subtract">-</option>
+        <option value="Multiply">*</option>
+        <option value="Divide">/</option>
+    </select>
+    <input type="text" name="num2" required />
+    <input type="submit" value="Calculate" />
+</form>
+@if (ViewBag.Result != null)
+{
+    <h3>Result: @ViewBag.Result</h3>
+}
