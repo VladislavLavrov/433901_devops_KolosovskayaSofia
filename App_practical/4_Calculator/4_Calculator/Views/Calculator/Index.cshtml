@@ -2,7 +2,7 @@
     ViewData["Title"] = "Simple Calculator";
 }
 <h2>@ViewData["Title"]</h2>
-<form method="post" asp-controller="Calculator" aspaction="Calculate">
+<form method="post" asp-controller="Calculator" asp-action="Calculate">
     @Html.AntiForgeryToken()
     <input type="text" name="num1" required />
     <select name="operation" required>
