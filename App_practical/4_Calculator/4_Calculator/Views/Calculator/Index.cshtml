@@ -1,24 +1,52 @@
-﻿@{
+﻿@model IEnumerable<Calculator.Data.DataInputVariant>
+
+@{
     ViewData["Title"] = "Калькулятор";
 }
-<h2>@ViewData["Title"]</h2>
+
+<h2>Калькулятор</h2>
+
 <form method="post" asp-controller="Calculator" asp-action="Calculate">
     @Html.AntiForgeryToken()
-
-    <input type="text" name="num1" placeholder="Первое число" required />
-
+    <input type="text" name="num1" required placeholder="Первое число" />
     <select name="operation" required>
-        <option value="Add">➕ Сложение</option>
-        <option value="Subtract">➖ Вычитание</option>
-        <option value="Multiply">✖️ Умножение</option>
-        <option value="Divide">➗ Деление</option>
+        <option value="1">Сложение</option>
+        <option value="2">Вычитание</option>
+        <option value="3">Умножение</option>
+        <option value="4">Деление</option>
     </select>
-
-    <input type="text" name="num2" placeholder="Второе число" required />
-
-    <button type="submit" style="background: green; color: white;">Рассчитать</button>
+    <input type="text" name="num2" required placeholder="Второе число" />
+    <input type="submit" value="Рассчитать" />
 </form>
-@if (ViewBag.Result != null)
+
+<h3>История операций:</h3>
+@if (Model != null && Model.Any())
 {
-    <h3>Результат: @ViewBag.Result</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Операнд 1</th>
+                <th>Операция</th>
+                <th>Операнд 2</th>
+                <th>Результат</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.ID_DataInputVariant</td>
+                    <td>@item.Operand_1</td>
+                    <td>@item.Type_operation</td>
+                    <td>@item.Operand_2</td>
+                    <td>@item.Result</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Пока нет записей.</p>
 }
