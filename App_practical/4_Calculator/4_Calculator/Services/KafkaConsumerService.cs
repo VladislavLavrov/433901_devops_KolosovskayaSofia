@@ -15,7 +15,7 @@ namespace Calculator.Services
     public class KafkaConsumerService : BackgroundService
     {
         private readonly string _topic;
-        private readonly IConsumer<Null, string> _kafkaConsumer;
+        private readonly IConfiguration _config;
         private readonly IServiceProvider _serviceProvider;
         private readonly IHttpClientFactory _clientFactory;
 
@@ -24,32 +24,31 @@ namespace Calculator.Services
             IServiceProvider serviceProvider,
             IHttpClientFactory clientFactory)
         {
+            _config = config;
             _topic = config["Kafka:TopicName"];
-
-            var consumerConfig = new ConsumerConfig();
-            config.GetSection("Kafka:ConsumerSettings").Bind(consumerConfig);
-            _kafkaConsumer = new ConsumerBuilder<Null, string>(consumerConfig).Build();
-
             _serviceProvider = serviceProvider;
             _clientFactory = clientFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _kafkaConsumer.Subscribe(_topic);
-
+            // ⚠️ Всё, что связано с Kafka — внутри фонового потока
+            IConsumer<Null, string> consumer = null;
             try
             {
+                var consumerConfig = new ConsumerConfig();
+                _config.GetSection("Kafka:ConsumerSettings").Bind(consumerConfig);
+                consumer = new ConsumerBuilder<Null, string>(consumerConfig).Build();
+
+                consumer.Subscribe(_topic);
+
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     try
                     {
-                        var cr = _kafkaConsumer.Consume(cancellationToken);
+                        var cr = consumer.Consume(cancellationToken);
 
-                        // Исходные данные
                         var inputData = JsonSerializer.Deserialize<DataInputVariant>(cr.Message.Value);
-
-                        // Выполнение расчета
                         var result = CalculatorLibrary.CalculateOperation(
                             inputData.Operand_1,
                             inputData.Operand_2,
@@ -69,28 +68,26 @@ namespace Calculator.Services
                     }
                     catch (ConsumeException e)
                     {
-                        if (e.Error.IsFatal)
-                        {
-                            break;
-                        }
+                        Console.WriteLine($"[KAFKA] Ошибка Consume: {e.Error.Reason}");
+                        // ⚠️ НЕ break — пусть продолжает пытаться
+                        await Task.Delay(5000, cancellationToken);
                     }
                     catch (Exception e)
                     {
-                        break;
+                        Console.WriteLine($"[KAFKA] Ошибка: {e.Message}");
+                        await Task.Delay(5000, cancellationToken);
                     }
                 }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[KAFKA] Фатальная ошибка: {e.Message}");
+            }
             finally
             {
-                _kafkaConsumer.Close();
+                consumer?.Close();
+                consumer?.Dispose();
             }
-        }
-
-        public override void Dispose()
-        {
-            _kafkaConsumer.Close();
-            _kafkaConsumer.Dispose();
-            base.Dispose();
         }
     }
 }
