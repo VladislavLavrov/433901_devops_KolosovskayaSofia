@@ -71,7 +71,7 @@ namespace Calculator.Controllers
         private async Task SendDataToKafka(DataInputVariant dataInputVariant)
         {
             var json = JsonSerializer.Serialize(dataInputVariant);
-            await _producer.ProduceAsync("lavrov", new Message<Null, string> { Value = json });
+            await _producer.ProduceAsync("kolosovskaya", new Message<Null, string> { Value = json });
         }
     }
 }
