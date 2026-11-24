@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'calculator'
+    static_configs:
+      - targets: ['web:5004']

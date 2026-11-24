@@ -1,0 +1,23 @@
+services:
+  web:
+    container_name: web-app-calculator-monitoring-4
+    hostname: app
+    build: .
+    ports:
+      - "0.0.0.0:5004:5004"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-4
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "0.0.0.0:9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-4
+    ports:
+      - "0.0.0.0:3000:3000"
+    depends_on:
+      - prometheus

@@ -1,7 +1,18 @@
+using OpenTelemetry.Metrics;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+        metrics.AddPrometheusExporter();
+        metrics.AddMeter("Microsoft.AspNetCore.Hosting");
+        metrics.AddMeter("Microsoft.AspNetCore.Server.Kestrel");
+    });
 
 var app = builder.Build();
 
@@ -23,5 +34,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Calculator}/{action=Index}/{id?}");
+
+app.MapPrometheusScrapingEndpoint();
 
 app.Run();
